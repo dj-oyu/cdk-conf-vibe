@@ -1,27 +1,47 @@
-# Realtime Collaborative Whiteboard (Mesh Edition)
+# CDK Conference Vibe - WebRTC Collaborative Whiteboard
 
-このリポジトリは、バックエンド運用コストを最小限に抑えたリアルタイム共同ホワイトボードを構築するための実験プロジェクトです。AWS CDK でインフラを定義し、フロントエンドは WebRTC DataChannels を利用したシンプルな HTML ページです。
+リアルタイム共同編集ホワイトボードアプリケーション（P2Pメッシュ接続）
 
-## リポジトリ構成
+バックエンド運用コストを最小限に抑えたWebRTC DataChannelsを利用したリアルタイム共同ホワイトボードです。
 
-- **cdk/** – インフラ定義と Lambda 関数
-- **frontend/** – WebRTC シグナリングを試すための簡易ページ
-- **docs/** – 日本語の設計資料と開発ルール
+## 🚀 デプロイ方法
 
-## はじめかた
+### 自動デプロイ
+```bash
+./scripts/deploy.sh
+```
 
-1. [pnpm](https://pnpm.io/) で依存パッケージをインストール
-   ```bash
-   cd cdk
-   pnpm install
-   ```
-2. CloudFormation テンプレートを合成
-   ```bash
-   pnpm run cdk:synth
-   ```
-3. スタックを AWS アカウントにデプロイ
-   ```bash
-   pnpm run cdk:deploy
-   ```
+### 手動デプロイ
+```bash
+cd cdk
+pnpm install
+pnpm run build
+pnpm run cdk:deploy
+```
+
+## 🔧 設定について
+
+WebSocket URLは自動的に設定されます：
+- `frontend/config.js` がデプロイ時に自動生成される
+- ハードコードされたURLは使用されません
+- 開発時は `ws://localhost:3001` がフォールバック値
+
+## 📁 プロジェクト構成
+
+```
+├── cdk/                    # AWS CDK infrastructure
+├── frontend/               # Static web frontend
+├── scripts/               # Deployment scripts
+└── docs/                  # Documentation
+```
+
+## 🔒 セキュリティ機能
+
+- S3バケットのパブリックアクセス完全ブロック
+- CloudFront Origin Access Control
+- DynamoDB TTL自動クリーンアップ
+- ルーム参加人数制限（8人）
+
+## 📚 詳細ドキュメント
 
 詳しくは `docs/spec.md` と `docs/development-rules.md` を参照してください。
