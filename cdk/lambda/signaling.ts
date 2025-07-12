@@ -8,11 +8,16 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const tableName = process.env.ROOMS_TABLE!;
 
 interface SignalingMessage {
-  type: 'join-room' | 'leave-room' | 'signal' | 'user-list';
+  type: 'join-room' | 'leave-room' | 'signal' | 'user-list' | 'webrtc-offer' | 'webrtc-answer' | 'webrtc-ice-candidate' | 'user-joined' | 'user-left';
   roomId?: string;
   userId?: string;
   signal?: any;
   targetUserId?: string;
+  toUserId?: string;
+  fromUserId?: string;
+  offer?: any;
+  answer?: any;
+  candidate?: any;
 }
 
 interface RoomConnection {
@@ -112,6 +117,11 @@ async function handleSignal(
     case 'signal':
       return await handleWebRTCSignal(connectionId, message, apiGatewayManagementApi);
     
+    case 'webrtc-offer':
+    case 'webrtc-answer':
+    case 'webrtc-ice-candidate':
+      return await handleWebRTCDirectSignal(connectionId, message, apiGatewayManagementApi);
+    
     default:
       return { statusCode: 400, body: JSON.stringify({ error: 'Unknown message type' }) };
   }
@@ -160,6 +170,12 @@ async function handleJoinRoom(
     users: updatedUsers.map(user => ({ userId: user.userId, connectionId: user.connectionId })),
   }, apiGatewayManagementApi);
 
+  // Notify existing users that a new user joined (for WebRTC initiation)
+  await broadcastToRoom(message.roomId, {
+    type: 'user-joined',
+    userId: message.userId,
+  }, apiGatewayManagementApi, [connectionId]); // Exclude the new user
+
   console.log(`User ${message.userId} joined room ${message.roomId}`);
   return { statusCode: 200, body: JSON.stringify({ message: 'Joined room successfully' }) };
 }
@@ -183,12 +199,32 @@ async function handleLeaveRoom(
     },
   }));
 
+  // Get user info before deletion for notification
+  const userInfo = await docClient.send(new QueryCommand({
+    TableName: tableName,
+    KeyConditionExpression: 'roomId = :roomId AND connectionId = :connectionId',
+    ExpressionAttributeValues: {
+      ':roomId': message.roomId,
+      ':connectionId': connectionId,
+    },
+  }));
+
+  const leavingUserId = userInfo.Items?.[0]?.userId;
+
   // Notify remaining users in the room
   const remainingUsers = await getRoomUsers(message.roomId);
   await broadcastToRoom(message.roomId, {
     type: 'user-list',
     users: remainingUsers.map(user => ({ userId: user.userId, connectionId: user.connectionId })),
   }, apiGatewayManagementApi, [connectionId]); // Exclude the leaving user
+
+  // Notify remaining users that a user left (for WebRTC cleanup)
+  if (leavingUserId) {
+    await broadcastToRoom(message.roomId, {
+      type: 'user-left',
+      userId: leavingUserId,
+    }, apiGatewayManagementApi, [connectionId]); // Exclude the leaving user
+  }
 
   console.log(`Connection ${connectionId} left room ${message.roomId}`);
   return { statusCode: 200, body: JSON.stringify({ message: 'Left room successfully' }) };
@@ -283,4 +319,66 @@ async function broadcastToRoom(
     });
 
   await Promise.all(promises);
+}
+
+async function handleWebRTCDirectSignal(
+  connectionId: string,
+  message: SignalingMessage,
+  apiGatewayManagementApi: ApiGatewayManagementApiClient
+): Promise<APIGatewayProxyResultV2> {
+  
+  if (!message.toUserId) {
+    return { statusCode: 400, body: JSON.stringify({ error: 'Missing toUserId' }) };
+  }
+
+  // Find the target user's connection
+  const targetConnections = await docClient.send(new ScanCommand({
+    TableName: tableName,
+    FilterExpression: 'userId = :userId',
+    ExpressionAttributeValues: {
+      ':userId': message.toUserId,
+    },
+  }));
+
+  if (!targetConnections.Items || targetConnections.Items.length === 0) {
+    return { statusCode: 404, body: JSON.stringify({ error: 'Target user not found' }) };
+  }
+
+  // Get sender's userId
+  const senderConnections = await docClient.send(new ScanCommand({
+    TableName: tableName,
+    FilterExpression: 'connectionId = :connectionId',
+    ExpressionAttributeValues: {
+      ':connectionId': connectionId,
+    },
+  }));
+
+  const fromUserId = senderConnections.Items?.[0]?.userId;
+  if (!fromUserId) {
+    return { statusCode: 400, body: JSON.stringify({ error: 'Sender not found' }) };
+  }
+
+  // Forward the WebRTC signal to the target user
+  const targetConnectionId = targetConnections.Items[0].connectionId;
+  
+  try {
+    const signalData = {
+      type: message.type,
+      fromUserId: fromUserId,
+      ...message.offer && { offer: message.offer },
+      ...message.answer && { answer: message.answer },
+      ...message.candidate && { candidate: message.candidate },
+    };
+
+    await apiGatewayManagementApi.send(new PostToConnectionCommand({
+      ConnectionId: targetConnectionId,
+      Data: JSON.stringify(signalData),
+    }));
+    
+    console.log(`Forwarded ${message.type} from ${fromUserId} to ${message.toUserId}`);
+    return { statusCode: 200, body: JSON.stringify({ message: 'WebRTC signal forwarded' }) };
+  } catch (error) {
+    console.error('Error forwarding WebRTC signal:', error);
+    return { statusCode: 500, body: JSON.stringify({ error: 'Failed to forward WebRTC signal' }) };
+  }
 }
