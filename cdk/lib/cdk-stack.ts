@@ -126,12 +126,6 @@ export class CdkStack extends cdk.Stack {
       sourceArn: `arn:aws:execute-api:${this.region}:${this.account}:${webSocketApi.apiId}/*/*`,
     });
 
-    // CloudWatch Log Group for Lambda
-    new logs.LogGroup(this, 'SignalingFunctionLogGroup', {
-      logGroupName: `/aws/lambda/${signalingFunction.functionName}`,
-      retention: logs.RetentionDays.ONE_WEEK,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-    });
 
     // Outputs
     new cdk.CfnOutput(this, 'WebSocketApiUrl', {
