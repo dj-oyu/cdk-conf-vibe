@@ -447,9 +447,11 @@ describe('ErrorHandler', () => {
             const IndexeddbPersistenceMock = jest.fn();
             global.IndexeddbPersistence = IndexeddbPersistenceMock;
 
+            const oldDestroy = mockCollaborationEngine.persistence.destroy;
             await errorHandler.reinitializePersistence();
 
-            expect(mockCollaborationEngine.persistence.destroy).toHaveBeenCalled();
+            expect(oldDestroy).toHaveBeenCalled();
+            expect(IndexeddbPersistenceMock).toHaveBeenCalled();
         });
 
         test('should reset application', async () => {

@@ -122,31 +122,31 @@ export class OfflineSyncManager {
     async syncSingleOperation(operation) {
         switch (operation.type) {
             case 'drawing-stroke':
-                this.collaborationEngine.addDrawingStroke(operation.data);
+                await this.collaborationEngine.addDrawingStroke(operation.data);
                 break;
                 
             case 'drawing-shape':
-                this.collaborationEngine.addDrawingShape(operation.data);
+                await this.collaborationEngine.addDrawingShape(operation.data);
                 break;
                 
             case 'drawing-delete':
-                this.collaborationEngine.removeDrawingElement(operation.elementId);
+                await this.collaborationEngine.removeDrawingElement(operation.elementId);
                 break;
                 
             case 'text-insert':
-                this.collaborationEngine.insertText(operation.index, operation.text);
+                await this.collaborationEngine.insertText(operation.index, operation.text);
                 break;
                 
             case 'text-delete':
-                this.collaborationEngine.deleteText(operation.index, operation.length);
+                await this.collaborationEngine.deleteText(operation.index, operation.length);
                 break;
                 
             case 'cursor-update':
-                this.collaborationEngine.updateCursor(operation.x, operation.y);
+                await this.collaborationEngine.updateCursor(operation.x, operation.y);
                 break;
                 
             case 'presence-update':
-                this.presenceManager.updateLocalPresence(operation.status, operation.metadata);
+                await this.presenceManager.updateLocalPresence(operation.data.status, operation.data.metadata);
                 break;
                 
             case 'yjs-transaction':

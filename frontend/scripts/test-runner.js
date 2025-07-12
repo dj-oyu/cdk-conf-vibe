@@ -8,7 +8,7 @@ import { execSync } from 'child_process';
 import { readFileSync } from 'fs';
 
 const NODE_OPTIONS = '--experimental-vm-modules';
-const JEST_COMMON_OPTS = '--maxWorkers=1 --forceExit';
+const JEST_COMMON_OPTS = '--config jest.config.js --maxWorkers=1 --forceExit';
 
 // Color codes for console output
 const colors = {
@@ -38,8 +38,9 @@ function runCommand(command, description) {
         log(`\n▶ ${description}`, 'blue');
         log(`Command: ${command}`, 'yellow');
         
-        const output = execSync(command, { 
+        const output = execSync(`pnpx ${command}`, { 
             stdio: 'inherit',
+            cwd: 'frontend',
             env: { ...process.env, NODE_OPTIONS }
         });
         

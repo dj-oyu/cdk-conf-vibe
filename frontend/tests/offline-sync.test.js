@@ -244,8 +244,7 @@ describe('OfflineSyncManager', () => {
             offlineSyncManager.syncQueue = [{
                 id: 'op1',
                 type: 'presence-update',
-                status: 'active',
-                metadata: { tool: 'pen' },
+                data: { status: 'active', metadata: { tool: 'pen' } },
                 status: 'pending',
                 retryCount: 0
             }];
