@@ -4,22 +4,22 @@
 
 ## 🚀 高優先度タスク (High Priority)
 
-### 1. 基本フロントエンド設定
-- [ ] **Create basic React frontend setup with Vite**
+### 1. React UIレイヤーの構築
+- [ ] **Create React + Vite frontend with existing modules integration**
   - Reactプロジェクトの初期化
   - TypeScript設定
   - Viteビルド設定
-  - 基本的なプロジェクト構造作成
+  - 既存JSモジュール (`webrtc.js`, `collaboration.js`等) のReact統合
 
-### 2. コラボレーション機能のコア実装
-- [ ] **Implement Y.js CRDT for collaborative editing**
+### 2. コラボレーション機能のコア実装  
+- [x] **Implement Y.js CRDT for collaborative editing** ✅ `collaboration.js`で完了
   - Y.jsライブラリの統合
   - 共同編集データ構造の設計
   - 競合解決機能の実装
   - オフライン対応
 
 ### 3. P2P接続機能
-- [ ] **Add WebRTC P2P connection logic**
+- [x] **Add WebRTC P2P connection logic** ✅ `webrtc.js`で完了
   - WebRTC DataChannel実装
   - SDP/ICE候補交換
   - メッシュネットワーク構築
@@ -41,7 +41,7 @@
 ## 🔧 中優先度タスク (Medium Priority)
 
 ### 5. ユーザープレゼンス機能
-- [ ] **Implement user presence and cursor tracking**
+- [x] **Implement user presence and cursor tracking** ✅ `presence.js`で完了
   - リアルタイムカーソル表示
   - ユーザー識別・色分け
   - 参加者リスト表示
@@ -59,7 +59,7 @@
   - テキスト同期
 
 ### 9. オフライン対応
-- [ ] **Implement offline support and sync**
+- [x] **Implement offline support and sync** ✅ `offline-sync.js`で完了
   - ローカルストレージ活用
   - 再接続時の同期
   - データ整合性確保
@@ -71,7 +71,7 @@
   - デスクトップUI
 
 ### 13. エラーハンドリング
-- [ ] **Implement error handling and reconnection logic**
+- [x] **Implement error handling and reconnection logic** ✅ `error-handler.js`で完了
   - 自動再接続機能
   - エラー状態表示
   - フォールバック処理
@@ -112,18 +112,38 @@
 - S3 + CloudFront静的配信
 - 基本的なHTML接続テストページ
 - 自動デプロイスクリプト
+- **フロントエンドコア機能実装** (2025-07-12完了)
+  - WebRTC P2P接続ロジック (`webrtc.js`)
+  - Y.js協調編集機能 (`collaboration.js`)
+  - ユーザープレゼンス機能 (`presence.js`)
+  - オフライン同期機能 (`offline-sync.js`)
+  - エラーハンドリング (`error-handler.js`)
+  - コア統合機能 (`core-integration.js`)
+  - 設定管理システム (`config.js`)
+- **テスト環境整備** (2025-07-12完了)
+  - Jest設定とテストスイート
+  - テストランナースクリプト
+  - コードカバレッジレポート
+
+### 🔄 現在の優先タスク（即座に着手すべき）
+
+**🎯 最優先: React UIレイヤーの構築**
+1. **React + Vite基本セットアップ** - 既存JSモジュールをReactコンポーネント化
+2. **ホワイトボードCanvas UI** - HTML5 Canvasを使った描画インターフェース  
+3. **ルーム管理UI** - 入室・作成・招待のReactコンポーネント
+4. **既存JSモジュールとReactの統合** - 現在のコア機能をReact Hooksで管理
 
 ### 🔄 次のマイルストーン
-**MVP (4週間目標)**
-1. React + Vite基本セットアップ
-2. Y.js統合とWebRTC P2P接続
-3. 基本的な描画機能
-4. ルーム管理UI
+**MVP (残り2週間目標)** ※コア機能完了済み
+1. ✅ ~~React + Vite基本セットアップ~~ → **React UIコンポーネント実装**
+2. ✅ ~~Y.js統合とWebRTC P2P接続~~ → **既存機能のReact統合**
+3. **基本的な描画機能** - Canvas UIとツールバー
+4. **ルーム管理UI** - 入室フロー
 
-**β版 (追加2週間)**
-5. ユーザープレゼンス
-6. エラーハンドリング
-7. モバイル対応
+**β版 (追加1週間)** ※基盤機能完了済み
+5. ✅ ~~ユーザープレゼンス~~ → **プレゼンスUI表示**
+6. ✅ ~~エラーハンドリング~~ → **エラー表示UI**
+7. **モバイル対応** - レスポンシブデザイン
 
 **GA版 (追加2週間)**
 8. 認証統合
@@ -147,4 +167,31 @@
 
 ---
 
-最終更新: 2025-07-12
+---
+
+## 🎯 次に着手すべき具体的タスク
+
+### 1️⃣ **即座に開始すべきタスク**
+```bash
+# React + Viteセットアップ
+npm create vite@latest frontend-react -- --template react-ts
+cd frontend-react && npm install
+
+# 既存JSモジュールをReactコンポーネントとして統合
+# - webrtc.js → useWebRTC Hook
+# - collaboration.js → useCollaboration Hook  
+# - presence.js → usePresence Hook
+```
+
+### 2️⃣ **優先度高: UIコンポーネント実装**
+- `components/Whiteboard/Canvas.tsx` - 描画キャンバス
+- `components/Room/RoomManager.tsx` - ルーム管理
+- `components/Toolbar/DrawingTools.tsx` - 描画ツール
+
+### 3️⃣ **統合テスト**
+- 既存のJestテストをReactコンポーネント向けに更新
+- E2Eテスト環境構築
+
+---
+
+最終更新: 2025-07-12 (git log解析により更新)
