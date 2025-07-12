@@ -126,6 +126,18 @@ export class CdkStack extends cdk.Stack {
       sourceArn: `arn:aws:execute-api:${this.region}:${this.account}:${webSocketApi.apiId}/*/*`,
     });
 
+    // Deploy frontend files to S3 with config injection
+    new s3deploy.BucketDeployment(this, 'DeployWebsite', {
+      sources: [
+        s3deploy.Source.asset('../frontend'),
+        s3deploy.Source.jsonData('config.js', {
+          'config.js': `window.WEBSOCKET_URL = '${webSocketStage.url}';`
+        })
+      ],
+      destinationBucket: websiteBucket,
+      distribution,
+      distributionPaths: ['/*'],
+    });
 
     // Outputs
     new cdk.CfnOutput(this, 'WebSocketApiUrl', {
